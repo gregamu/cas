@@ -1,6 +1,5 @@
 package org.apereo.cas.web.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apereo.cas.CentralAuthenticationService;
 import org.apereo.cas.authentication.AuthenticationServiceSelectionPlan;
 import org.apereo.cas.authentication.AuthenticationSystemSupport;
@@ -26,15 +25,21 @@ import org.apereo.cas.web.flow.login.InitializeLoginAction;
 import org.apereo.cas.web.flow.login.RedirectUnauthorizedServiceUrlAction;
 import org.apereo.cas.web.flow.login.SendTicketGrantingTicketAction;
 import org.apereo.cas.web.flow.login.ServiceWarningAction;
+import org.apereo.cas.web.flow.login.SetServiceUnauthorizedRedirectUrlAction;
 import org.apereo.cas.web.flow.login.TicketGrantingTicketCheckAction;
 import org.apereo.cas.web.flow.logout.FrontChannelLogoutAction;
 import org.apereo.cas.web.flow.logout.LogoutAction;
 import org.apereo.cas.web.flow.logout.LogoutViewSetupAction;
 import org.apereo.cas.web.flow.logout.TerminateSessionAction;
+import org.apereo.cas.web.flow.mfa.MultifactorAuthenticationAvailableAction;
+import org.apereo.cas.web.flow.mfa.MultifactorAuthenticationBypassAction;
+import org.apereo.cas.web.flow.mfa.MultifactorAuthenticationFailureAction;
 import org.apereo.cas.web.flow.resolver.CasDelegatingWebflowEventResolver;
 import org.apereo.cas.web.flow.resolver.CasWebflowEventResolver;
 import org.apereo.cas.web.support.ArgumentExtractor;
 import org.apereo.cas.web.support.CookieRetrievingCookieGenerator;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -161,6 +166,14 @@ public class CasSupportActionsConfiguration {
     }
 
     @RefreshScope
+    @ConditionalOnMissingBean(name = "setServiceUnauthorizedRedirectUrlAction")
+    @Bean
+    public Action setServiceUnauthorizedRedirectUrlAction() {
+        return new SetServiceUnauthorizedRedirectUrlAction(servicesManager);
+    }
+
+
+    @RefreshScope
     @Bean
     @ConditionalOnMissingBean(name = "logoutAction")
     public Action logoutAction() {
@@ -242,6 +255,7 @@ public class CasSupportActionsConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "terminateSessionAction")
     @RefreshScope
     public Action terminateSessionAction() {
         return new TerminateSessionAction(centralAuthenticationService,
@@ -261,5 +275,26 @@ public class CasSupportActionsConfiguration {
     public Action serviceWarningAction() {
         return new ServiceWarningAction(centralAuthenticationService, authenticationSystemSupport,
             ticketRegistrySupport, warnCookieGenerator.getIfAvailable(), principalElectionStrategy);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "mfaAvailableAction")
+    @RefreshScope
+    public Action mfaAvailableAction() {
+        return new MultifactorAuthenticationAvailableAction();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "mfaBypassAction")
+    @RefreshScope
+    public Action mfaBypassAction() {
+        return new MultifactorAuthenticationBypassAction();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "mfaFailureAction")
+    @RefreshScope
+    public Action mfaFailureAction() {
+        return new MultifactorAuthenticationFailureAction(casProperties);
     }
 }

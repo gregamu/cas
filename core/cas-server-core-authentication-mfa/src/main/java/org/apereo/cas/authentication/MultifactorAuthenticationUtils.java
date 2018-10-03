@@ -4,11 +4,15 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apereo.cas.configuration.model.support.mfa.MultifactorAuthenticationProviderBypassProperties;
 import org.apereo.cas.services.MultifactorAuthenticationProvider;
+import org.apereo.cas.services.VariegatedMultifactorAuthenticationProvider;
+import org.apereo.cas.util.CollectionUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -29,17 +33,19 @@ public class MultifactorAuthenticationUtils {
     public static MultifactorAuthenticationProviderBypass newMultifactorAuthenticationProviderBypass(
         final MultifactorAuthenticationProviderBypassProperties props) {
 
-        final MultifactorAuthenticationProviderBypass bypass;
+        final ChainingMultifactorAuthenticationProviderBypass bypass
+                = new ChainingMultifactorAuthenticationProviderBypass();
+        bypass.addBypass(new DefaultMultifactorAuthenticationProviderBypass(props));
+
         switch (props.getType()) {
             case GROOVY:
-                bypass = new GroovyMultifactorAuthenticationProviderBypass(props);
+                bypass.addBypass(new GroovyMultifactorAuthenticationProviderBypass(props));
                 break;
             case REST:
-                bypass = new RestMultifactorAuthenticationProviderBypass(props);
+                bypass.addBypass(new RestMultifactorAuthenticationProviderBypass(props));
                 break;
             case DEFAULT:
             default:
-                bypass = new DefaultMultifactorAuthenticationProviderBypass(props);
                 break;
         }
         return bypass;
@@ -77,5 +83,46 @@ public class MultifactorAuthenticationUtils {
         return values.stream()
             .filter(p -> ids.contains(p.getId()))
             .collect(Collectors.toSet());
+    }
+
+    /**
+     * Method returns an Optional that will contain a MultifactorAuthenticationProvider that has the
+     * same id as the passed providerId parameter.
+     *
+     * @param providerId - the id to match
+     * @param context - ApplicationContext
+     * @return - Optional
+     */
+    public static Optional<MultifactorAuthenticationProvider> getMultifactorAuthenticationProviderById(final String providerId,
+                                                                                                       final ApplicationContext context) {
+        return getAvailableMultifactorAuthenticationProviders(context).values().stream()
+            .filter(p -> p.getId().equals(providerId)).findFirst();
+    }
+
+    /**
+     * Consolidate providers collection.
+     * If the provider is multi-instance in the collection, consolidate and flatten.
+     *
+     * @param providers the providers
+     * @return the collection
+     */
+    public static Collection<MultifactorAuthenticationProvider> flattenProviders(final Collection<? extends MultifactorAuthenticationProvider> providers) {
+        final Collection<MultifactorAuthenticationProvider> flattenedProviders = new HashSet<>();
+        providers.forEach(p -> flattenedProviders.addAll(flattenProvider(p)));
+        return flattenedProviders;
+    }
+
+    /**
+     * Returns the collection of providers in a VariegatedMultifactorAuthenticationProvider or wraps the passed provider
+     * into a Collection.
+     *
+     * @param provider the provider
+     * @return - the collection
+     */
+    public static Collection<MultifactorAuthenticationProvider> flattenProvider(final MultifactorAuthenticationProvider provider) {
+        if (provider instanceof VariegatedMultifactorAuthenticationProvider) {
+            return ((VariegatedMultifactorAuthenticationProvider) provider).getProviders();
+        }
+        return CollectionUtils.wrap(provider);
     }
 }

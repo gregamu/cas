@@ -722,7 +722,7 @@ To disable log sanitization, start the container with the system property `CAS_T
 ## Authentication Attributes
 
 Set of authentication attributes that are retrieved by the principal resolution process,
-typically via some component of [Person Directory](..\integration\Attribute-Resolution.html)
+typically via some component of [Person Directory](../integration/Attribute-Resolution.html)
 from a number of attribute sources unless noted otherwise by the specific authentication scheme.
 
 If multiple attribute repository sources are defined, they are added into a list
@@ -879,16 +879,19 @@ to be a JSON map as such:
 
 ### Ruby/Python/Javascript/Groovy
 
-Similar to the Groovy option but more versatile, this option takes advantage of Java's native scripting API to invoke Groovy, Python or Javascript scripting engines to compile a pre-defined script o resolve attributes. The following settings are relevant:
+Similar to the Groovy option but more versatile, this option takes advantage of Java's native scripting API to invoke Groovy, Python or Javascript scripting engines to compile a pre-defined script to resolve attributes. 
+The following settings are relevant:
 
 ```properties
 # cas.authn.attributeRepository.script[0].location=file:/etc/cas/script.groovy
 # cas.authn.attributeRepository.script[0].order=0
 # cas.authn.attributeRepository.script[0].caseInsensitive=false
+# cas.authn.attributeRepository.script[0].engineName=js|groovy|ruby|python
 ```
 
 While Javascript and Groovy should be natively supported by CAS, Python scripts may need
 to massage the CAS configuration to include the [Python modules](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jython-standalone%22).
+Ruby scripts are supported via [JRuby](https://search.maven.org/search?q=g:org.jruby%20AND%20a:jruby)  
 
 The Groovy script may be defined as:
 
@@ -899,7 +902,7 @@ Map<String, List<Object>> run(final Object... args) {
     def uid = args[0]
     def logger = args[1]
 
-    logger.debug("Things are happening just fine")
+    logger.debug("Groovy things are happening just fine with UID: {}",uid)
     return[username:[uid], likes:["cheese", "food"], id:[1234,2,3,4,5], another:"attribute"]
 }
 ```
@@ -907,14 +910,20 @@ Map<String, List<Object>> run(final Object... args) {
 The Javascript script may be defined as:
 
 ```javascript
-function run(args) {
-    var uid = args[0]
-    var logger = args[1]
+function run(uid, logger) {
     print("Things are happening just fine")
+    logger.warn("Javascript called with UID: {}",uid);
+
+    // If you want to call back into Java, this is one way to do so
+    var javaObj = new JavaImporter(org.yourorgname.yourpackagename);
+    with (javaObj) {
+    	var objFromJava = JavaClassInPackage.someStaticMethod(uid);
+    }
 
     var map = {};
+    map["attr_from_java"] = objFromJava.getSomething();
     map["username"] = uid;
-    map["likes"] = "chees";
+    map["likes"] = "cheese";
     map["id"] = [1234,2,3,4,5];
     map["another"] = "attribute";
 
@@ -950,7 +959,7 @@ Retrieve attributes from a JDBC source. Database settings for this feature are a
 
 ### Grouper
 
-This option reads all the groups from [a Grouper instance](www.internet2.edu/grouper/software.html) for the given CAS principal and adopts them
+This option reads all the groups from [a Grouper instance](http://www.internet2.edu/grouper/software.html) for the given CAS principal and adopts them
 as CAS attributes under a `grouperGroups` multi-valued attribute.
 To learn more about this topic, [please review this guide](../integration/Attribute-Resolution.html).
 
@@ -1129,8 +1138,8 @@ To learn more about this topic, [please review this guide](Configuring-Authentic
 
 ```properties
 # cas.authn.throttle.usernameParameter=username
-# cas.authn.throttle.schedule.startDelay=10000
-# cas.authn.throttle.schedule.repeatInterval=20000
+# cas.authn.throttle.schedule.startDelay=PT10S
+# cas.authn.throttle.schedule.repeatInterval=PT30S
 # cas.authn.throttle.appcode=CAS
 
 # cas.authn.throttle.failure.threshold=100
@@ -1296,8 +1305,8 @@ To learn more about this topic, [please review this guide](SMS-Messaging-Configu
 Send text messaging using Twilio.
 
 ```properties
-# cas.smsProviders.twilio.accountId=
-# cas.smsProviders.twilio.token=
+# cas.smsProvider.twilio.accountId=
+# cas.smsProvider.twilio.token=
 ```
 
 ### TextMagic
@@ -1305,9 +1314,9 @@ Send text messaging using Twilio.
 Send text messaging using TextMagic.
 
 ```properties
-# cas.smsProviders.textMagic.username=
-# cas.smsProviders.textMagic.token=
-# cas.smsProviders.textMagic.url=
+# cas.smsProvider.textMagic.username=
+# cas.smsProvider.textMagic.token=
+# cas.smsProvider.textMagic.url=
 ```
 
 ### Clickatell
@@ -1315,8 +1324,8 @@ Send text messaging using TextMagic.
 Send text messaging using Clickatell.
 
 ```properties
-# cas.smsProviders.clickatell.serverUrl=https://platform.clickatell.com/messages
-# cas.smsProviders.clickatell.token=
+# cas.smsProvider.clickatell.serverUrl=https://platform.clickatell.com/messages
+# cas.smsProvider.clickatell.token=
 ```
 
 ### Amazon SNS
@@ -1324,13 +1333,13 @@ Send text messaging using Clickatell.
 Send text messaging using Amazon SNS.
 
 ```properties
-# cas.smsProviders.sns.senderId=
-# cas.smsProviders.sns.maxPrice=
-# cas.smsProviders.sns.smsType=Transactional
+# cas.smsProvider.sns.senderId=
+# cas.smsProvider.sns.maxPrice=
+# cas.smsProvider.sns.smsType=Transactional
 ```
 
 AWS settings for this feature are available [here](Configuration-Properties-Common.html#amazon-integration-settings) 
-under the configuration key `cas.smsProviders.sns`.
+under the configuration key `cas.smsProvider.sns`.
 
 ## GeoTracking
 
@@ -2438,7 +2447,7 @@ under the configuration key `cas.authn.samlIdp.metadata.jpa`.
  Common configuration settings for this feature are available [here](Configuration-Properties-Common.html#mongodb-configuration) 
  under the configuration key `cas.authn.samlIdp.metadata`.
  
- #### SAML Metadata REST
+#### SAML Metadata REST
  
 RESTful settings for this feature are available [here](Configuration-Properties-Common.html#restful-integrations) 
 under the configuration key `cas.authn.samlIdp.metadata.rest`.
@@ -2479,8 +2488,16 @@ under the configuration key `cas.authn.samlIdp.metadata.amazonS3`.
 # cas.authn.samlIdp.response.defaultAuthenticationContextClass=
 # cas.authn.samlIdp.response.defaultAttributeNameFormat=uri
 # cas.authn.samlIdp.response.signError=false
+# cas.authn.samlIdp.response.skewAllowance=5
 # cas.authn.samlIdp.response.signingCredentialType=X509|BASIC
 # cas.authn.samlIdp.response.attributeNameFormats=attributeName->basic|uri|unspecified|custom-format-etc,...
+```
+
+### SAML Ticket
+
+```properties
+# cas.authn.samlIdp.ticket.samlArtifactsCacheStorageName=samlArtifactsCache
+# cas.authn.samlIdp.ticket.samlAttributeQueryCacheStorageName=samlAttributeQueryCache
 ```
 
 ## SAML SPs
@@ -2628,6 +2645,8 @@ Delegate authentication to an external CAS server.
 ```properties
 # cas.authn.pac4j.cas[0].loginUrl=
 # cas.authn.pac4j.cas[0].protocol=
+# cas.authn.pac4j.cas[0].usePathBasedCallbackUrl=false
+# cas.authn.pac4j.cas[0].principalAttributeId=
 ```
 
 ### OAuth20
@@ -2642,6 +2661,8 @@ Delegate authentication to an generic OAuth2 server. Common settings for this id
 # cas.authn.pac4j.oauth2[0].profileVerb=GET|POST
 # cas.authn.pac4j.oauth2[0].profileAttrs.attr1=path-to-attr-in-profile
 # cas.authn.pac4j.oauth2[0].customParams.param1=value1
+# cas.authn.pac4j.oauth2[0].usePathBasedCallbackUrl=false
+# cas.authn.pac4j.oauth2[0].principalAttributeId=
 ```
 
 ### OpenID Connect
@@ -2657,6 +2678,9 @@ Delegate authentication to an external OpenID Connect server. Common settings fo
 # cas.authn.pac4j.oidc[0].useNonce=
 # cas.authn.pac4j.oidc[0].preferredJwsAlgorithm=
 # cas.authn.pac4j.oidc[0].customParams.param1=value1
+# cas.authn.pac4j.oidc[0].azureTenantId=
+# cas.authn.pac4j.oidc[0].usePathBasedCallbackUrl=false
+# cas.authn.pac4j.oidc[0].principalAttributeId=
 ```
 
 ### SAML2
@@ -2686,8 +2710,15 @@ prefixes for the `keystorePath` or `identityProviderMetadataPath` property).
 # cas.authn.pac4j.saml[0].passive=false
 
 # cas.authn.pac4j.saml[0].wantsAssertionsSigned=
+# cas.authn.pac4j.saml[0].signServiceProviderMetadata=false
 # cas.authn.pac4j.saml[0].attributeConsumingServiceIndex=
 # cas.authn.pac4j.saml[0].assertionConsumerServiceIndex=-1
+# cas.authn.pac4j.saml[0].principalAttributeId=
+
+# cas.authn.pac4j.saml[0].requestedAttributes[0].name=
+# cas.authn.pac4j.saml[0].requestedAttributes[0].friendlyName=
+# cas.authn.pac4j.saml[0].requestedAttributes[0].nameFormat=urn:oasis:names:tc:SAML:2.0:attrname-format:uri
+# cas.authn.pac4j.saml[0].requestedAttributes[0].required=false
 ```
 
 Examine the generated metadata after accessing the CAS login screen to ensure all ports and endpoints are correctly adjusted.  Finally, share the CAS SP metadata with the delegated IdP and register CAS as an authorized relying party.
@@ -2722,7 +2753,7 @@ Delegate authentication to Twitter.  Common settings for this identity provider 
 Allow CAS to act as an identity provider and security token service
 to support the WS-Federation protocol.
 
-To learn more about this topic, [please review this guide](WS-Federation-Protocol.html)
+To learn more about this topic, [please review this guide](../protocol/WS-Federation-Protocol.html)
 
 ```properties
 # cas.authn.wsfedIdp.idp.realm=urn:org:apereo:cas:ws:idp:realm-CAS
@@ -2810,6 +2841,7 @@ Created by CAS if and when users are to be warned when accessing CAS protected s
 # cas.tgc.secure=true
 # cas.tgc.httpOnly=true
 # cas.tgc.rememberMeMaxAge=1209600
+# cas.tgc.pinToSession=true
 ```
 
 ### Signing & Encryption
@@ -3734,6 +3766,8 @@ To learn more about this topic, [please review this guide](../protocol/REST-Prot
 ```properties
 # cas.rest.attributeName=
 # cas.rest.attributeValue=
+# cas.rest.headerAuth=
+# cas.rest.bodyAuth=
 ```
 
 ## Metrics

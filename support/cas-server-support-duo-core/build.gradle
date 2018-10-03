@@ -2,6 +2,7 @@ description = "Apereo CAS DuoSecurity Support"
 
 dependencies {
     implementation libraries.duojava
+    implementation libraries.caffein
     api project(":api:cas-server-core-api")
     api project(":api:cas-server-core-api-webflow")
     
@@ -13,6 +14,7 @@ dependencies {
     implementation project(":core:cas-server-core-configuration-api")
     implementation project(":core:cas-server-core-util-api")
     implementation project(":support:cas-server-support-duo-core-mfa")
+    implementation project(":support:cas-server-support-actions")
     
     compileOnly project(":support:cas-server-support-trusted-mfa")
     

@@ -31,12 +31,25 @@ public class DuoCredential implements Credential {
 
     private String signedDuoResponse;
 
+    private String mark;
+
     @Override
     public String getId() {
         return this.username;
     }
 
+    @Override
+    public void setMark(final String mark) {
+        this.mark = mark;
+    }
+
+    @Override
+    public String getMark() {
+        return mark;
+    }
+
     public boolean isValid() {
         return StringUtils.isNotBlank(this.username) && StringUtils.isNotBlank(this.signedDuoResponse);
     }
+
 }

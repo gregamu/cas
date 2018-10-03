@@ -71,6 +71,21 @@ public interface CasWebflowConstants {
     String TRANSITION_ID_ENROLL = "enroll";
 
     /**
+     * Provider service is unavailable.
+     */
+    String TRANSITION_ID_UNAVAILABLE = "unavailable";
+
+    /**
+     * User allowed to bypass auth by provider.
+     */
+    String TRANSITION_ID_BYPASS = "bypass";
+
+    /**
+     * User was denied access by provider.
+     */
+    String TRANSITION_ID_DENY = "deny";
+
+    /**
      * The state id 'success'.
      */
     String STATE_ID_SUCCESS = "success";
@@ -337,6 +352,11 @@ public interface CasWebflowConstants {
     String VAR_ID_CREDENTIAL = "credential";
 
     /**
+     * The flow var id 'providerId'.
+     */
+    String VAR_ID_PROVIDER_ID = "providerId";
+
+    /**
      * Event attribute id 'authenticationWarnings'.
      */
     String ATTRIBUTE_ID_AUTHENTICATION_WARNINGS = "authenticationWarnings";
@@ -535,4 +555,44 @@ public interface CasWebflowConstants {
      * State id to check for do change password manual flag "checkDoChangePassword".
      */
     String STATE_ID_CHECK_DO_CHANGE_PASSWORD = "checkDoChangePassword";
+
+    /**
+     * State id when MFA provider has been detected as unavailable and failureMode is closed.
+     */
+    String STATE_ID_MFA_UNAVAILABLE = "mfaUnavailable";
+
+    /**
+     * State id when MFA provider has denied access to a user because of account lockout.
+     */
+    String STATE_ID_MFA_DENIED = "mfaDenied";
+
+    /**
+     * View id when MFA provider has been detected as unavailable and failureMode is closed.
+     */
+    String VIEW_ID_MFA_UNAVAILABLE = "mfaUnavailableView";
+
+    /**
+     * View id when MFA provider has denied access to a user because of account lockout.
+     */
+    String VIEW_ID_MFA_DENIED = "mfaDeniedView";
+
+    /**
+     * State to check if the MFA provider is available.
+     */
+    String STATE_ID_CHECK_AVAILABLE = "checkAvailable";
+
+    /**
+     * State to check if the MFA provider should be bypassed.
+     */
+    String STATE_ID_CHECK_BYPASS = "checkBypass";
+
+    /**
+     * State to determine the MFA failure mode and what action to take.
+     */
+    String TRANSITION_ID_FAILURE = "mfaFailure";
+
+    /**
+     * State that can be used by MFA providers that offer preAuth endpoints.
+     */
+    String STATE_ID_MFA_PRE_AUTH = "mfaPreAuth";
 }

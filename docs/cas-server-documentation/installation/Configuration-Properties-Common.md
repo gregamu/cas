@@ -411,6 +411,7 @@ The following options related to Person Directory support in CAS when it attempt
 # ${configurationKey}.principalAttribute=
 # ${configurationKey}.returnNull=false
 # ${configurationKey}.principalResolutionFailureFatal=false
+# ${configurationKey}.useExistingPrincipalId=false
 ```
 
 ## InfluxDb Configuration
@@ -868,7 +869,7 @@ The parameters passed are as follows:
 
 ## Email Notifications
 
-To learn more about this topic, [please review this guide](SMS-Email-Configuration.html).
+To learn more about this topic, [please review this guide](Sending-Email-Configuration.html).
 
 The following options are shared and apply when CAS is configured to send email notifications, given the provider's *configuration key*:
 
@@ -916,6 +917,7 @@ to an external provider such as Yahoo, given the provider's *configuration key*:
 # ${configurationKey}.secret=
 # ${configurationKey}.clientName=My Provider
 # ${configurationKey}.autoRedirect=false
+# ${configurationKey}.principalAttributeId=
 ```
 
 
